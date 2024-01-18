@@ -1,0 +1,89 @@
+"""QUIZLET$
+
+Do this before starting the program:
+Save the vocabulary file there, where you have your program saved as well
+Name your vocabulary file vocabulary.txt. If you don't want to have this name, change the name in line 16
+When writing your vocabulary separate the word and the translation with ' % '
+"""
+
+import os
+import shutil
+import atexit
+import sys
+import random
+
+progress_path = "progress.txt"
+vocabulary_path = "vocabulary.txt"
+
+vocabulary = []
+
+
+# Saves your progress before the code exits --- this part doesn't work on Lizzy's laptop??!!
+def update_before_exit():
+    try:
+        with open(progress_path, 'w', encoding='utf-8') as fp:
+            for word1, word2 in vocabulary:
+                fp.write(word1 + ' % ' + word2)
+                fp.write("\n")
+                # fp.write("I successfully did what I am supposed to do")
+
+    except Exception as e:
+        print(e, file=sys.stderr)  # sys.stderr or os.write()
+
+
+# checks if the progress file already exists, if not, it creates one for you
+def create_progress_file():
+    if not os.path.exists(progress_path):
+        with open(progress_path, 'w', encoding='utf-8'):
+            pass
+
+
+# Reads in from the file into the list vocabulary
+# If your progress file is empty = you're done -> starts asking from the start
+def open_read_in():
+    global vocabulary
+
+    create_progress_file()
+
+    if os.path.getsize(progress_path) == 0:
+        shutil.copy2(vocabulary_path, progress_path)
+
+    f = open(progress_path, 'r', encoding='utf-8')
+
+    for line in f:
+        line = line.strip()
+        words = [str(x) for x in line.split(' % ')]
+        vocabulary.append(words)
+
+
+# Intro + instructions
+def intro():
+    print("Ein Projekt von Zsófia Marossy")
+    print("Benutzung: ", end="")
+    print("Es wird dir ein Wort in einer Sprache gegeben, du musst die Übersetzung hinschreiben.\n")
+
+
+atexit.register(update_before_exit)
+intro()
+open_read_in()
+
+mistakes = 0
+
+while len(vocabulary) != 0:
+    current_vocab = random.randint(0, len(vocabulary)-1)
+
+    word = vocabulary[current_vocab][0]
+    translation = vocabulary[current_vocab][1]
+
+    user_input = input(word)
+    user_input = user_input.strip()
+
+    if user_input == translation:
+        vocabulary.remove([word, translation])
+    else:
+        mistakes += 1
+
+
+print("\nHerzlichen Glückwunsch. Du hast deine Vokabeln gelernt.")
+print("Du hattest", mistakes, "Fehler.")
+print("Starte das Program nochmals, um deine Vokabeln zu repetieren")
