@@ -1,0 +1,106 @@
+"""VOCABULARY-TRAINER
+
+Do this before starting the program:
+Save the vocabulary file there, where you have your program saved as well
+Name your vocabulary file vocabulary.txt. If you don't want to have this name, change the name in line 16
+When writing your vocabulary file, separate the word and the translation with ' % '
+"""
+
+import os
+import shutil
+import atexit
+import sys
+import random
+
+progress_name = "progress.txt"
+vocabulary_name = "vocabulary.txt"
+
+
+progress_path = os.path.join(os.getcwd(), progress_name)
+vocabulary_path = os.path.join(os.getcwd(), vocabulary_name)
+
+vocabulary = []
+
+
+# Saves your progress before the code exits 
+def update_before_exit():
+    if(vocabulary):
+        print("Saving progress...")
+        
+    try:
+        with open(progress_path, 'w', encoding='utf-8') as fp:
+            for word1, word2 in vocabulary:
+                fp.write(word1 + ' % ' + word2)
+                fp.write("\n")
+                
+
+    except Exception as e:
+        print(e, file=sys.stderr)  
+
+
+# checks if the progress file already exists, if not, it creates one for you
+def create_progress_file():
+    if not os.path.exists(progress_path):
+        with open(progress_path, 'w', encoding='utf-8'):
+            pass
+
+
+# Reads in from the file into the list vocabulary
+# If your progress file is empty = you're done -> starts asking from the start
+def open_read_in():
+    global vocabulary
+
+    create_progress_file()
+
+    if os.path.getsize(progress_path) == 0:
+        shutil.copy2(vocabulary_path, progress_path)
+
+    with open(progress_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            words = line.split(' % ')
+            vocabulary.append(words)
+
+
+# Intro + instructions
+def intro():
+    print("A project from Zsófia Marossy")
+    print("Usage: ", end="")
+    print("You will get a word and you have to write its translation into the prompt\n")
+    print("Depending on how you run the program, you can exit in a different way")
+    print("To exit, you can finish all the words correctly, or:")
+    print("In Thonny you can exit by pressing Ctrl-C + enter")
+    print("In PyCharm you can exit by terminating the program\n")
+    
+
+atexit.register(update_before_exit)
+intro()
+open_read_in()
+
+mistakes = 0
+
+while vocabulary:
+    current_vocab = random.randint(0, len(vocabulary) - 1)
+
+    word = vocabulary[current_vocab][0]
+    translation = vocabulary[current_vocab][1]
+
+    try:
+       user_input = input(word + " > ")
+    except (EOFError, KeyboardInterrupt):
+        print("OK, exiting")
+        sys.exit()
+    user_input = user_input.strip()
+
+    if user_input == translation:
+        vocabulary.remove([word, translation])
+        
+    else:
+        print("Wrong. The correct translation for", word, "would be:", translation)
+        mistakes += 1
+
+
+print("\nCongratulations. You studied all of your vocabulary.")
+print("You had", mistakes, "mistake(s).")
+print("If you would like to study your vocabulary again, just run the program again.\n")
+sys.exit()
